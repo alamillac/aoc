@@ -1,2 +1,2 @@
-/input_tests/
-/inputs/
+/input_tests/*.txt
+/inputs/*.txt
