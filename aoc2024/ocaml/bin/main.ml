@@ -15,7 +15,9 @@ let aoc () =
   Aoc2024.Day7.part2 ();
   Aoc2024.Day8.part1 ();
   (* Aoc2024.Day8.part2 (); (* TODO: Fix result and improve performance *) *)
-  Aoc2024.Day9.part1 ()
+  Aoc2024.Day9.part1 ();
   (* Aoc2024.Day9.part2 () (* TODO: Fix result *) *)
+  Aoc2024.Day11.part1 ();
+  Aoc2024.Day11.part2 ()
 
 let () = aoc ()
