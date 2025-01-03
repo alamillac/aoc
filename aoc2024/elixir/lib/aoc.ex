@@ -16,5 +16,7 @@ defmodule AOC do
 
     AOC.D11.part1()
     AOC.D11.part2()
+
+    AOC.D12.part1()
   end
 end
