@@ -72,16 +72,44 @@ defmodule AOC.D14 do
       List.foldl(robots, {0, 0, 0, 0}, fn r, {c1, c2, c3, c4} ->
         {p0, p1} = r.p
 
-        case {p0 < mid_w, p1 < mid_h, p0 > mid_w, p1 > mid_h} do
-          {true, true, _, _} -> {c1 + 1, c2, c3, c4}
-          {true, _, _, true} -> {c1, c2 + 1, c3, c4}
-          {_, true, true, _} -> {c1, c2, c3 + 1, c4}
-          {_, _, true, true} -> {c1, c2, c3, c4 + 1}
-          _ -> {c1, c2, c3, c4}
+        if p0 == mid_w or p1 == mid_h do
+          {c1, c2, c3, c4}
+        else
+          case {p0 < mid_w, p1 < mid_h} do
+            {true, true} -> {c1 + 1, c2, c3, c4}
+            {true, false} -> {c1, c2 + 1, c3, c4}
+            {false, true} -> {c1, c2, c3 + 1, c4}
+            {false, false} -> {c1, c2, c3, c4 + 1}
+          end
         end
       end)
 
     c1 * c2 * c3 * c4
+  end
+
+  defp draw_map(robots, {w, h}) do
+    map_robots =
+      List.foldl(robots, %{}, fn r, acc ->
+        val = Map.get(acc, r.p, 0)
+        Map.put(acc, r.p, val + 1)
+      end)
+
+    i_range = 0..(w-1)
+    j_range = 0..(h-1)
+
+    Enum.each(j_range, fn j ->
+      Enum.each(i_range, fn i ->
+        val = Map.get(map_robots, {i, j})
+
+        if val == nil do
+          IO.write(" ")
+        else
+          IO.write(".")
+        end
+      end)
+
+      IO.write("\n")
+    end)
   end
 
   def part1 do
@@ -90,5 +118,17 @@ defmodule AOC.D14 do
     secs = 100
     factor = simulate(robots, size, secs) |> get_safety_factor(size)
     IO.puts("Safety factor after #{secs} seconds: #{factor}")
+  end
+
+  def part2 do
+    {file, size} = input_file()
+    robots = parse_file(file)
+    secs_range = 0..100
+    Enum.each(secs_range, fn secs ->
+      IO.puts("Map from secs #{secs}")
+      simulate(robots, size, secs) |> draw_map(size)
+      IO.write("\n")
+      Process.sleep(1000)
+    end)
   end
 end
