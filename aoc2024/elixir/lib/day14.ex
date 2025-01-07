@@ -87,15 +87,16 @@ defmodule AOC.D14 do
     c1 * c2 * c3 * c4
   end
 
-  defp draw_map(robots, {w, h}) do
-    map_robots =
-      List.foldl(robots, %{}, fn r, acc ->
-        val = Map.get(acc, r.p, 0)
-        Map.put(acc, r.p, val + 1)
-      end)
+  defp map(robots) do
+    List.foldl(robots, %{}, fn r, acc ->
+      val = Map.get(acc, r.p, 0)
+      Map.put(acc, r.p, val + 1)
+    end)
+  end
 
-    i_range = 0..(w-1)
-    j_range = 0..(h-1)
+  defp draw_map(map_robots, {w, h}) do
+    i_range = 0..(w - 1)
+    j_range = 0..(h - 1)
 
     Enum.each(j_range, fn j ->
       Enum.each(i_range, fn i ->
@@ -112,6 +113,20 @@ defmodule AOC.D14 do
     end)
   end
 
+  defp single_robot_pos(robots, size, secs_init, secs_end) do
+    Stream.unfold(secs_init, fn
+      secs when secs == secs_end ->
+        nil
+
+      secs ->
+        m = simulate(robots, size, secs) |> map()
+        {{secs, m}, secs + 1}
+    end)
+    |> Stream.filter(fn {_secs, map_robots} ->
+      Map.values(map_robots) |> Enum.max() == 1
+    end)
+  end
+
   def part1 do
     {file, size} = input_file()
     robots = parse_file(file)
@@ -123,12 +138,21 @@ defmodule AOC.D14 do
   def part2 do
     {file, size} = input_file()
     robots = parse_file(file)
-    secs_range = 0..100
-    Enum.each(secs_range, fn secs ->
+
+    # secs_range = 0..10000
+    # Enum.each(secs_range, fn secs ->
+    #   IO.puts("Map from secs #{secs}")
+    #   simulate(robots, size, secs) |> map() |> draw_map(size)
+    #   IO.write("\n")
+    #   Process.sleep(100)
+    # end)
+
+    single_robot_pos(robots, size, 0, 10000)
+    |> Enum.each(fn {secs, map} ->
       IO.puts("Map from secs #{secs}")
-      simulate(robots, size, secs) |> draw_map(size)
+      draw_map(map, size)
       IO.write("\n")
-      Process.sleep(1000)
+      Process.sleep(100)
     end)
   end
 end
