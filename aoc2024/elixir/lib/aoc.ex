@@ -28,5 +28,8 @@ defmodule AOC do
 
     AOC.D15.part1()
     AOC.D15.part2()
+
+    AOC.D16.part1()
+    # AOC.D16.part2()
   end
 end
