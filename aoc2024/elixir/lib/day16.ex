@@ -105,35 +105,80 @@ defmodule AOC.D16 do
     end
   end
 
-  defp append_if_valid(lst, maze, score, pos, direction, visited) do
+  defp append_if_valid(lst, maze, score, pos_lst, direction, visited) do
+    pos = hd(pos_lst)
+
     if not MapSet.member?(visited, {pos, direction}) and is_valid_pos(maze, pos) do
-      [{score, pos, direction} | lst]
+      [{score, pos_lst, direction} | lst]
     else
       lst
     end
   end
 
-  defp find_paths(maze, score, pos, direction, visited) do
+  defp find_paths(maze, score, pos_lst, direction, visited) do
     # 3 options (go forward, turn left, turn right)
     []
-    |> append_if_valid(maze, score + 1, go_forward(pos, direction), direction, visited)
-    |> append_if_valid(maze, score + 1000, pos, turn_left(direction), visited)
-    |> append_if_valid(maze, score + 1000, pos, turn_right(direction), visited)
+    |> append_if_valid(
+      maze,
+      score + 1,
+      [go_forward(hd(pos_lst), direction) | pos_lst],
+      direction,
+      visited
+    )
+    |> append_if_valid(maze, score + 1000, pos_lst, turn_left(direction), visited)
+    |> append_if_valid(maze, score + 1000, pos_lst, turn_right(direction), visited)
   end
 
-  defp solve_maze(maze, [{score, pos, direction} | leaves], visited) do
+  defp solve_maze(maze, [{score, pos_lst, direction} | leaves], visited) do
+    pos = hd(pos_lst)
+
     if is_finish(maze, pos) do
       score
     else
       visited = MapSet.put(visited, {pos, direction})
-      new_leaves = find_paths(maze, score, pos, direction, visited)
+      new_leaves = find_paths(maze, score, pos_lst, direction, visited)
       sorted_leaves = Enum.sort(leaves ++ new_leaves, fn {v1, _, _}, {v2, _, _} -> v2 >= v1 end)
       solve_maze(maze, sorted_leaves, visited)
     end
   end
 
   defp solve_maze(maze, start) do
-    solve_maze(maze, [{0, start, ?>}], MapSet.new())
+    solve_maze(maze, [{0, [start], ?>}], MapSet.new())
+  end
+
+  defp find_all_solutions(_maze, [], _visited, solutions, _solution_score) do
+    solutions
+  end
+
+  defp find_all_solutions(maze, [{score, _, _} | leaves], visited, solutions, solution_score)
+       when solution_score != nil and score > solution_score do
+    find_all_solutions(maze, leaves, visited, solutions, solution_score)
+  end
+
+  defp find_all_solutions(
+         maze,
+         [{score, pos_lst, direction} | leaves],
+         visited,
+         solutions,
+         solution_score
+       ) do
+    pos = hd(pos_lst)
+
+    if is_finish(maze, pos) do
+      find_all_solutions(maze, leaves, visited, [pos_lst | solutions], score)
+    else
+      visited = MapSet.put(visited, {pos, direction})
+      new_leaves = find_paths(maze, score, pos_lst, direction, visited)
+
+      sorted_leaves =
+        Enum.sort(leaves ++ new_leaves, fn {v1, _, _}, {v2, _, _} -> v2 >= v1 end)
+
+      find_all_solutions(maze, sorted_leaves, visited, solutions, solution_score)
+    end
+  end
+
+  defp find_all_solutions(maze, start) do
+    find_all_solutions(maze, [{0, [start], ?>}], MapSet.new(), [], nil)
   end
 
   def part1 do
@@ -143,5 +188,15 @@ defmodule AOC.D16 do
     start = find_start(maze)
     min_score = solve_maze(maze, start)
     IO.puts("Lowest score: #{min_score}")
+  end
+
+  def part2 do
+    map = input_file() |> read_file() |> parse_file()
+    print_map(map)
+    maze = to_tuple(map)
+    start = find_start(maze)
+    solutions = find_all_solutions(maze, start)
+    num_tiles = solutions |> List.flatten() |> MapSet.new() |> MapSet.size()
+    IO.puts("Num tiles in solution: #{num_tiles}")
   end
 end
