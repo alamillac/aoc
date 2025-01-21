@@ -44,11 +44,11 @@ defmodule AOC.D18 do
   end
 
   defp find_exit(_map, _exit, [], _visited) do
-    raise "Not found solution"
+    {:not_found}
   end
 
   defp find_exit(_map, exit, [{acc, move} | _lst], _visited) when move == exit do
-    acc
+    {:ok, acc}
   end
 
   defp find_exit(map, exit, [{acc, {i, j}} | lst], visited) do
@@ -82,13 +82,34 @@ defmodule AOC.D18 do
     find_exit(map, exit, [{0, start}], MapSet.new())
   end
 
+  defp find_first_byte(positions, bytes, start, exit) do
+    map = generate_map(exit, positions |> Enum.take(bytes) |> MapSet.new())
+
+    case find_exit(map, start, exit) do
+      {:not_found} -> bytes
+      _ -> find_first_byte(positions, bytes + 1, start, exit)
+    end
+  end
+
   def part1 do
     {file, exit, bytes} = input_file()
 
     positions = file |> read_file() |> parse_file() |> Enum.take(bytes) |> MapSet.new()
     map = generate_map(exit, positions)
     start = {0, 0}
-    min_steps = find_exit(map, start, exit)
+    {:ok, min_steps} = find_exit(map, start, exit)
     IO.puts("Minimum steps to reach exit: #{min_steps}")
+  end
+
+  def part2 do
+    {file, exit, bytes} = input_file()
+
+    positions = file |> read_file() |> parse_file()
+    start = {0, 0}
+    first_byte = find_first_byte(positions, bytes + 1, start, exit)
+    byte_coordinate = Enum.at(positions, first_byte - 1)
+    IO.puts(
+      "First byte that will cut off the path to the exit: #{first_byte} Coordinate: #{elem(byte_coordinate, 0)},#{elem(byte_coordinate, 1)}"
+    )
   end
 end
