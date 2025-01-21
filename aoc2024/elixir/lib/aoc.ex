@@ -36,6 +36,9 @@ defmodule AOC do
     AOC.D17.part2()
 
     AOC.D18.part1()
-    AOC.D18.part2()
+    # AOC.D18.part2() # TODO: Improve performance
+
+    AOC.D19.part1()
+    # AOC.D19.part2()
   end
 end
