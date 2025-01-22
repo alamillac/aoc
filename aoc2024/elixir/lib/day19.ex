@@ -1,4 +1,6 @@
 defmodule AOC.D19 do
+  use Memoize
+
   defp input_file(), do: Util.get_input_filename(19)
   # defp input_file(), do: Util.get_test_filename(19)
 
@@ -53,6 +55,30 @@ defmodule AOC.D19 do
     is_design_possible([{design, patterns}], MapSet.new())
   end
 
+  defmemo num_valid_designs("", _patterns) do
+    1
+  end
+
+  defmemo num_valid_designs(_design, []) do
+    0
+  end
+
+  defmemo num_valid_designs(design, patterns) do
+    valid_patterns =
+      Enum.filter(patterns, fn p ->
+        String.contains?(design, p)
+      end)
+
+    Enum.filter(valid_patterns, fn p ->
+      String.starts_with?(design, p)
+    end)
+    |> Enum.map(fn p ->
+      design = String.replace(design, ~r"^#{p}", "")
+      num_valid_designs(design, valid_patterns)
+    end)
+    |> Enum.sum()
+  end
+
   def part1 do
     {patterns, designs} = input_file() |> read_file() |> parse_file()
 
@@ -67,5 +93,17 @@ defmodule AOC.D19 do
       |> Enum.sum()
 
     IO.puts("Number of possible designs: #{num_possible_designs}")
+  end
+
+  def part2 do
+    {patterns, designs} = input_file() |> read_file() |> parse_file()
+
+    num_possible_designs =
+      Enum.map(designs, fn design ->
+        num_valid_designs(design, patterns)
+      end)
+      |> Enum.sum()
+
+    IO.puts("Number of different ways you could make each design: #{num_possible_designs}")
   end
 end
