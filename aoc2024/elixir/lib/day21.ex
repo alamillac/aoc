@@ -1,4 +1,6 @@
 defmodule AOC.D21 do
+  use Memoize
+
   defp input_file(), do: Util.get_input_filename(21)
   # defp input_file(), do: Util.get_test_filename(21)
 
@@ -40,10 +42,6 @@ defmodule AOC.D21 do
     {keypad, invalid, start_pos}
   end
 
-  defp next_pos(key_pos, pos, _invalid) when key_pos == pos do
-    [{pos, ?A}]
-  end
-
   defp next_pos({i0, j0}, {i1, j1}, invalid) do
     directions = [
       {i0 > i1 and {i1 + 1, j1} != invalid, {i1 + 1, j1}, ?>},
@@ -52,36 +50,48 @@ defmodule AOC.D21 do
       {j0 < j1 and {i1, j1 - 1} != invalid, {i1, j1 - 1}, ?^}
     ]
 
-    for {true, coords, symbol} <- directions do
-      {coords, symbol}
+    for {true, n_pos, action} <- directions do
+      {n_pos, action}
     end
   end
 
+  defp get_actions(key_pos, pos, _invalid, acc) when key_pos == pos do
+    [[?A | acc]]
+  end
+
+  defp get_actions(key_pos, pos, invalid, acc) do
+    next_pos(key_pos, pos, invalid)
+    |> Enum.flat_map(fn {n_pos, action} ->
+      get_actions(key_pos, n_pos, invalid, [action | acc])
+    end)
+  end
+
+  defmemo get_actions(key_pos, pos, invalid) do
+    get_actions(key_pos, pos, invalid, [])
+  end
+
   defp find_actions(_keypad, [], acc) do
-    [Enum.reverse(acc)]
+    Enum.map(acc, fn ac ->
+      Enum.reverse(ac)
+    end)
   end
 
   defp find_actions({keypad_map, invalid, pos}, [c | code], acc) do
     key_pos = Map.get(keypad_map, c)
+    actions_lst = get_actions(key_pos, pos, invalid)
 
-    code =
-      if pos != key_pos do
-        [c | code]
-      else
-        code
+    acc =
+      for actions <- actions_lst, ac <- acc do
+        actions ++ ac
       end
 
-    nexts_pos = next_pos(key_pos, pos, invalid)
-
-    Enum.flat_map(nexts_pos, fn {pos, action} ->
-      find_actions({keypad_map, invalid, pos}, code, [action | acc])
-    end)
+    find_actions({keypad_map, invalid, key_pos}, code, acc)
   end
 
   defp find_actions(codes_lst, keypad) do
     Enum.map(codes_lst, fn codes ->
       Enum.flat_map(codes, fn code ->
-        find_actions(keypad, code, [])
+        find_actions(keypad, code, [[]])
       end)
     end)
   end
