@@ -50,13 +50,18 @@ defmodule AOC.D22 do
   end
 
   defp get_price_seq(prices_lst) do
-    {price_seq, _} =
+    {price_seq, _, _} =
       prices_lst
-      |> List.foldl({[], []}, fn e, acc ->
+      |> List.foldl({[], [], nil}, fn e, acc ->
         case acc do
-          {[], []} -> {[], [e]}
-          {lst, [e1, e2, e3 | _]} -> {[{e, {e - e1, e1, e2, e3}} | lst], [e - e1, e1, e2, e3]}
-          {[], [e1 | t]} -> {[], [e - e1, e1 | t]}
+          {lst, [e1, e2, e3 | _], prev} ->
+            {[{e, {e - prev, e1, e2, e3}} | lst], [e - prev, e1, e2, e3], e}
+
+          {[], [], nil} ->
+            {[], [], e}
+
+          {[], lst, prev} ->
+            {[], [e - prev | lst], e}
         end
       end)
 
@@ -83,31 +88,28 @@ defmodule AOC.D22 do
   end
 
   defp reduce_map_seq(map_seq_lst) do
-    map_seq_lst
-    |> Enum.reduce(0, fn map_seq, max_val ->
-      {new_max_val, _} =
-        Map.keys(map_seq)
-        |> Enum.reduce({max_val, MapSet.new()}, fn k, {max_val, evaluated} ->
-          if MapSet.member?(evaluated, k) do
-            {max_val, evaluated}
-          else
-            val =
-              map_seq_lst
-              |> Enum.reduce(0, fn map_seq, acc ->
-                acc + Map.get(map_seq, k, 0)
-              end)
+    map_uniq_seqs =
+      map_seq_lst
+      |> Enum.reduce(MapSet.new(), fn map_seq, uniq_keys ->
+        keys = Map.keys(map_seq)
+        MapSet.union(uniq_keys, MapSet.new(keys))
+      end)
+      |> MapSet.to_list()
 
-            evaluated = MapSet.put(evaluated, k)
-
-            if val > max_val do
-              {val, evaluated}
-            else
-              {max_val, evaluated}
-            end
-          end
+    map_uniq_seqs
+    |> Enum.reduce(0, fn k, max_val ->
+      val =
+        map_seq_lst
+        |> Enum.reduce(0, fn map_seq, acc ->
+          v = Map.get(map_seq, k, 0)
+          acc + v
         end)
 
-      new_max_val
+      if val > max_val do
+        val
+      else
+        max_val
+      end
     end)
   end
 
