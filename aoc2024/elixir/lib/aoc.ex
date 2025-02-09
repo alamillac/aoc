@@ -52,5 +52,11 @@ defmodule AOC do
 
     AOC.D23.part1()
     # AOC.D23.part2()
+
+    AOC.D24.part1()
+    # AOC.D24.part2()
+
+    AOC.D25.part1()
+    # AOC.D25.part2()
   end
 end
