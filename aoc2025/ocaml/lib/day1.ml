@@ -63,9 +63,6 @@ module Rotation = struct
         let next_p = apply r p in
         let zero_rotations =
           count_zero_rotations r p
-          (* let zero_rotations = *)
-          (*   if next_p = 0 then count_zero_rotations r p + 1 *)
-          (*   else count_zero_rotations r p *)
         in
         let () =
           if debug then
@@ -95,5 +92,3 @@ let part1 () =
 let part2 () =
   let rotations = Util.read_lines file parse_line in
   Printf.printf "Password: (%d)\n" (Rotation.x434C49434B rotations)
-(* let zero_rotations = Rotation.rotate_and_count rotations 50 in *)
-(* Printf.printf "Rotations: (%d)\n" (List.map (fun (p, r) -> p, r) zero_rotations) *)
