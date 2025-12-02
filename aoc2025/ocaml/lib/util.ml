@@ -8,13 +8,14 @@ let print_return txt =
   print_endline txt;
   txt
 
-let memo_rec f =
-  let h = Hashtbl.create 16 in
-  let rec g x =
-    try Hashtbl.find h x
-    with Not_found ->
-      let y = f g x in
-      Hashtbl.add h x y;
-      y
+let read_lines (name : string) fn =
+  let ic = open_in name in
+  let try_read () = try Some (input_line ic) with End_of_file -> None in
+  let rec loop acc =
+    match try_read () with
+    | None ->
+        close_in ic;
+        fn None acc
+    | s -> loop (fn s acc)
   in
-  g
+  loop [] |> List.rev
