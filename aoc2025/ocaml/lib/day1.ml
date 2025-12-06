@@ -13,7 +13,7 @@ module Rotation = struct
 
   let direction (r : t) : char = match r with Left, _ -> 'L' | Right, _ -> 'R'
   let num (r : t) : int = match r with _, n -> n
-  let p_print (r : t) : string = Printf.sprintf "%c%d" (direction r) (num r)
+  let pprint (r : t) : string = Printf.sprintf "%c%d" (direction r) (num r)
 
   let parse (s : string) : t =
     let dir = parse_direction s.[0] in
@@ -21,7 +21,7 @@ module Rotation = struct
     (dir, num)
 
   let print_list (l : t list) : string =
-    l |> List.map p_print |> String.concat "\n"
+    l |> List.map pprint |> String.concat "\n"
 
   let apply (r : t) (pos : int) : int =
     match r with
@@ -66,7 +66,7 @@ module Rotation = struct
         in
         let () =
           if debug then
-            Printf.printf "%d %s -> %d: %d\n" p (p_print r) next_p
+            Printf.printf "%d %s -> %d: %d\n" p (pprint r) next_p
               zero_rotations
         in
         (next_p, zero_rotations) :: acc)
