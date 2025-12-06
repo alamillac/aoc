@@ -1,5 +1,5 @@
-let file = Util.get_input_filename 2
-(* let file = Util.get_test_filename 2 *)
+(* let file = Util.get_input_filename 2 *)
+let file = Util.get_test_filename 2
 
 module IDRange = struct
   type t = int * int
