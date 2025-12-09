@@ -1,5 +1,5 @@
-(* let file = Util.get_input_filename 4 *)
-let file = Util.get_test_filename 4
+let file = Util.get_input_filename 4
+(* let file = Util.get_test_filename 4 *)
 
 module Grid = struct
   type t = int array array
@@ -64,6 +64,38 @@ module Grid = struct
       done
     done;
     !count
+
+  let rolls_to_remove (grid : t) : pos list =
+    let next_pos (grid : t) (pos : pos) : pos option =
+      let x, y = pos in
+      let max_y = Array.length grid.(0) - 1 in
+      if y < max_y then Some (x, y + 1)
+      else
+        let max_x = Array.length grid - 1 in
+        if x < max_x then Some (x + 1, 0) else None
+    in
+
+    let rec aux (grid : t) (pos : pos) (acc : pos list) : pos list =
+      let x, y = pos in
+      let acc =
+        if paper_in_pos grid (x, y) && count_adjacent grid (x, y) < 4 then
+          pos :: acc
+        else acc
+      in
+      let next = next_pos grid pos in
+      match next with None -> acc | Some next -> aux grid next acc
+    in
+    aux grid (0, 0) []
+
+  let remove_rolls (grid : t) : int =
+    let rec aux (grid : t) (acc : int) : int =
+      let rolls = rolls_to_remove grid in
+      if rolls = [] then acc
+      else (
+        List.iter (fun (x, y) -> grid.(x).(y) <- 0) rolls;
+        aux grid (acc + List.length rolls))
+    in
+    aux grid 0
 end
 
 let parse_line (s : string option) (acc : string list) : string list =
@@ -73,3 +105,8 @@ let part1 () =
   let diagram = Util.read_lines file parse_line in
   let grid = Grid.create diagram in
   Printf.printf "Num rolls of paper: (%d)\n" (Grid.num_rolls grid)
+
+let part2 () =
+  let diagram = Util.read_lines file parse_line in
+  let grid = Grid.create diagram in
+  Printf.printf "Num rolls of paper removed: (%d)\n" (Grid.remove_rolls grid)
