@@ -25,6 +25,33 @@ module Inventory = struct
     List.fold_left
       (fun acc id -> if is_fresh inventory id then acc + 1 else acc)
       0 inventory.available_ids
+
+  let join_ranges (range1 : id_range) (range2 : id_range) : id_range option =
+    let join (x1, x2) (y1, y2) =
+      if y1 >= x1 && y1 <= x2 then
+        if y2 > x2 then Some (x1, y2) else Some (x1, x2)
+      else None
+    in
+    let new_range = join range1 range2 in
+    match new_range with
+    | None -> join range2 range1
+    | Some new_range -> Some new_range
+
+  let fresh_total (inventory : t) : int =
+    let rec aux (range : id_range) (ranges : id_range list)
+        (acc : id_range list) : id_range list =
+      match ranges with
+      | [] -> range :: acc
+      | h :: tl -> (
+          let new_range = join_ranges range h in
+          match new_range with
+          | None -> aux range tl (h :: acc)
+          | Some new_range -> aux new_range (List.append tl acc) [])
+    in
+    let unique_ranges =
+      List.fold_left (fun acc range -> aux range acc []) [] inventory.fresh_ids
+    in
+    unique_ranges |> List.fold_left (fun acc (x1, x2) -> acc + x2 - x1 + 1) 0
 end
 
 module InventoryParser = struct
@@ -67,3 +94,8 @@ let part1 () =
   let inventory = InventoryParser.parse file in
   Printf.printf "Num fresh available ingredients: (%d)\n"
     (Inventory.fresh_available inventory)
+
+let part2 () =
+  let inventory = InventoryParser.parse file in
+  Printf.printf "Num fresh total ingredients: (%d)\n"
+    (Inventory.fresh_total inventory)
