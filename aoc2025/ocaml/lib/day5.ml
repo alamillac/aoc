@@ -87,9 +87,6 @@ module InventoryParser = struct
     inventory
 end
 
-let parse_line (s : string option) (acc : string list) : string list =
-  match s with None -> acc | Some s -> s :: acc
-
 let part1 () =
   let inventory = InventoryParser.parse file in
   Printf.printf "Num fresh available ingredients: (%d)\n"
