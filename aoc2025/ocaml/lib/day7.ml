@@ -1,6 +1,17 @@
 let file = Util.get_input_filename 7
 (* let file = Util.get_test_filename 7 *)
 
+let memo_rec f =
+  let h = Hashtbl.create 16 in
+  let rec g x =
+    try Hashtbl.find h x
+    with Not_found ->
+      let y = f g x in
+      Hashtbl.add h x y;
+      y
+  in
+  g
+
 module Manifold = struct
   type pos = int
   type t = { start : pos; splitters : pos list list }
@@ -23,6 +34,20 @@ module Manifold = struct
         (beams, num_splits + n))
       ([ manifold.start ], 0) manifold.splitters
     |> snd
+
+  let num_timelines (manifold : t) : int =
+    let aux self (manifold : t) : int =
+      let beam = manifold.start in
+      match manifold.splitters with
+      | [] -> 1
+      | row :: rows ->
+          let split = List.exists (fun splitter -> splitter = beam) row in
+          if split then
+            self { start = beam - 1; splitters = rows }
+            + self { start = beam + 1; splitters = rows }
+          else self { start = beam; splitters = rows }
+    in
+    memo_rec aux manifold
 end
 
 module ManifoldParser = struct
@@ -56,3 +81,8 @@ let part1 () =
   let manifold = ManifoldParser.parse file in
   let num_splits = Manifold.num_splits manifold in
   Printf.printf "Beam splits: (%d)\n" num_splits
+
+let part2 () =
+  let manifold = ManifoldParser.parse file in
+  let num_timelines = Manifold.num_timelines manifold in
+  Printf.printf "Num timelines: (%d)\n" num_timelines

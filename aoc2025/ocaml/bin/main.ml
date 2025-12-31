@@ -10,6 +10,7 @@ let aoc () =
   Aoc2025.Day5.part1 ();
   Aoc2025.Day5.part2 ();
   Aoc2025.Day6.part1 ();
-  Aoc2025.Day7.part1 ()
+  Aoc2025.Day7.part1 ();
+  Aoc2025.Day7.part2 ()
 
 let () = aoc ()
